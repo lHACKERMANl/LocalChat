@@ -9,6 +9,10 @@ import java.applet.Applet;
 import java.util.Scanner;
 import java.io.File;
 import java.io.FileWriter;
+import java.awt.event.ActionListener;
+import java.awt.event.ActionEvent;
+import java.io.File;
+import java.nio.file.Files;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -25,6 +29,7 @@ public class App extends JFrame
     private JTextArea taMain;
     private JTextField tfMsg;
     private JTextField ipFor;
+    private JFileChooser fileopen;
 
     private final String FRM_TITLE = "Chat";
     private final int FRM_LOC_X = 100;
@@ -50,7 +55,6 @@ public class App extends JFrame
     private void customize() throws Exception{
         DatagramSocket receiveSocket = new DatagramSocket(PORT);
         Pattern regex = Pattern.compile("[\u0020-\uFFFF]");
-
         while(true){
             byte[] receiveData = new byte[1024];
             DatagramPacket receivePacket = new DatagramPacket(receiveData, receiveData.length);
@@ -62,14 +66,7 @@ public class App extends JFrame
             //System.out.println(sentence.trim());
             dialog += iPAddress.toString() + ": " + sentence.trim() + "\r\n";
             System.out.println(dialog);
-            try{
-                file = new File("Dialog.txt");
-                fw = new FileWriter(file);
-                fw.write(dialog);
-                fw.close();
-            } catch(Exception exept){
-                exept.printStackTrace();
-            }
+            GetDialog();
             taMain.append(iPAddress.toString() + ": ");
             while(m.find()){
                 taMain.append(sentence.substring(m.start(), m.end()));
@@ -82,24 +79,39 @@ public class App extends JFrame
 private void btnSend_Handler() throws Exception{
     DatagramSocket sendSocket = new DatagramSocket();
     InetAddress IPAddress = InetAddress.getByName(IP_BROADCUST);
-    file = new File("Dialog.txt");
     byte[] sendData;
     String sentence = tfMsg.getText();
     dialog += "Me: " + sentence + "\r\n";
     taMain.append("Me: " + sentence + "\r\n");
     System.out.println(dialog);
-    try{
-        file = new File("Dialog.txt");
-        fw = new FileWriter(file);
-        fw.write(dialog);
-        fw.close();
-    } catch(Exception exept){
-        exept.printStackTrace();
-    }
+    GetDialog();
     tfMsg.setText("");
     sendData = sentence.getBytes("UTF-8");
     DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length, IPAddress,PORT);
     sendSocket.send(sendPacket);
+}
+
+private void btnSendFile_Handler() throws Exception{
+    File fileSend;
+    JFileChooser fileopen = new JFileChooser();             
+    int ret = fileopen.showDialog(null, "Open file");  
+
+    if (ret == JFileChooser.APPROVE_OPTION) {
+        fileSend = fileopen.getSelectedFile();
+        if(fileSend.length()/1000 <= 5000/1000){
+            DatagramSocket sendSocket = new DatagramSocket();
+            InetAddress IPAddress = InetAddress.getByName(IP_BROADCUST);
+            byte[] sendData;
+            sendData = Files.readAllBytes(fileSend.toPath());
+            DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length, IPAddress,PORT);
+            taMain.append("You sendet " + fileSend.getName() + "\r\n");
+            GetDialog();
+            sendSocket.send(sendPacket);
+        }
+        else{
+            taMain.append("Sorry. This file more than 5KB\r\n");
+        }
+    }
 }
 
 private void framDraw(JFrame frame){
@@ -120,7 +132,16 @@ try {
 } catch(Exception ex) {
     ex.printStackTrace();
 }
+});
 
+JButton button = new JButton("Send file");
+button.setToolTipText("Broadcast a file");
+button.addActionListener(e ->{
+    try {
+        btnSendFile_Handler();
+    } catch(Exception ex) {
+        ex.printStackTrace();
+    }
 });
 
 frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
@@ -131,7 +152,7 @@ frame.setResizable(false);
 frame.getContentPane().add(BorderLayout.NORTH, spMain);
 frame.getContentPane().add(BorderLayout.CENTER, tfMsg);
 frame.getContentPane().add(BorderLayout.EAST, btnSend);
-//frame.getContentPane().add(BorderLayout.CENTER, ipFor);
+frame.getContentPane().add(BorderLayout.WEST, button);
 frame.setVisible(true);
 }
 
@@ -143,8 +164,15 @@ private void antistatic(){
     new theReceiver().start();
 }
 
-public void GetDialog(String dialogString){
-    //System.out.println("CHAT \n" + dialogString);
+public void GetDialog(){
+    try{
+        file = new File("Dialog.txt");
+        fw = new FileWriter(file);
+        fw.write(dialog);
+        fw.close();
+    } catch(Exception exept){
+        exept.printStackTrace();
+    }
 }
 
 public static void main( String[] args )
