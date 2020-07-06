@@ -1,5 +1,5 @@
 # LocalChat
-p2p chat in local system. Only. what you need, just write local ip address
+Сhat in local system. Only. what you need, just write local ip address
 
 ## Install and start
 * ```git clone https://github.com/lHACKERMANl/LocalChat.git```
