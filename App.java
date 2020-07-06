@@ -20,6 +20,7 @@ public class App extends JFrame
 { 
     private FileWriter fw;
     private String dialog = "";
+    private File file;
 
     private JTextArea taMain;
     private JTextField tfMsg;
@@ -40,7 +41,7 @@ public class App extends JFrame
     public void start(){
         super.start();
         try{
-            customize();  
+            customize();
         } catch (Exception ex) {
             ex.printStackTrace();
         }  
@@ -61,24 +62,40 @@ public class App extends JFrame
             //System.out.println(sentence.trim());
             dialog += iPAddress.toString() + ": " + sentence.trim() + "\r\n";
             System.out.println(dialog);
-
+            try{
+                file = new File("Dialog.txt");
+                fw = new FileWriter(file);
+                fw.write(dialog);
+                fw.close();
+            } catch(Exception exept){
+                exept.printStackTrace();
+            }
             taMain.append(iPAddress.toString() + ": ");
             while(m.find()){
                 taMain.append(sentence.substring(m.start(), m.end()));
             }
             taMain.append("\r\n");
         }
-    };
+    }
 }
 
 private void btnSend_Handler() throws Exception{
     DatagramSocket sendSocket = new DatagramSocket();
     InetAddress IPAddress = InetAddress.getByName(IP_BROADCUST);
+    file = new File("Dialog.txt");
     byte[] sendData;
     String sentence = tfMsg.getText();
     dialog += "Me: " + sentence + "\r\n";
     taMain.append("Me: " + sentence + "\r\n");
     System.out.println(dialog);
+    try{
+        file = new File("Dialog.txt");
+        fw = new FileWriter(file);
+        fw.write(dialog);
+        fw.close();
+    } catch(Exception exept){
+        exept.printStackTrace();
+    }
     tfMsg.setText("");
     sendData = sentence.getBytes("UTF-8");
     DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length, IPAddress,PORT);
@@ -126,14 +143,14 @@ private void antistatic(){
     new theReceiver().start();
 }
 
-public String GetDialog(){
-    return dialog;
+public void GetDialog(String dialogString){
+    //System.out.println("CHAT \n" + dialogString);
 }
 
-public static void main( String[] args ) throws Exception
+public static void main( String[] args )
 {
     //new App().antistatic();
     App app = new App();
-    app.antistatic(); 
+    app.antistatic();
 }
 }
