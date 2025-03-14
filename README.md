@@ -15,4 +15,4 @@
 
 ## Contact
 
-Anisin Vlad - [mail](maysonlive1@gmail.com) - [vk](https://vk.com/mr.solidsnake)
+Anisin Vlad - [mail](maysonlive1@gmail.com)
